@@ -27,7 +27,7 @@ stages:
     - checkout: self
 
     # ==========================================
-    # USE JAVA 11
+    # CONFIGURE JAVA 11
     # ==========================================
 
     - script: |
@@ -35,14 +35,41 @@ stages:
 
         set PATH=%JAVA_HOME%\bin;%PATH%
 
+        echo =====================================
+        echo JAVA VERSION
+        echo =====================================
+
         java -version
+
+        echo =====================================
+        echo MAVEN VERSION
+        echo =====================================
 
         mvn -version
 
       displayName: Configure Java 11
 
     # ==========================================
-    # BUILD WAR FILE
+    # SHOW PROJECT STRUCTURE
+    # ==========================================
+
+    - script: |
+        echo =====================================
+        echo ROOT PROJECT FILES
+        echo =====================================
+
+        dir
+
+        echo =====================================
+        echo WEBAPP PROJECT FILES
+        echo =====================================
+
+        dir webapp
+
+      displayName: Show Project Structure
+
+    # ==========================================
+    # MAVEN DEBUG BUILD
     # ==========================================
 
     - script: |
@@ -50,12 +77,12 @@ stages:
 
         set PATH=%JAVA_HOME%\bin;%PATH%
 
-        mvn clean package -pl webapp -am
+        mvn clean package -pl webapp -am -e -X
 
-      displayName: Build WAR File
+      displayName: Maven Debug Build
 
     # ==========================================
-    # FIND GENERATED WAR FILE
+    # SEARCH GENERATED WAR FILE
     # ==========================================
 
     - script: |
@@ -89,6 +116,10 @@ stages:
     # ==========================================
 
     - script: |
+        echo =====================================
+        echo VERIFY TOMCAT WEBAPPS
+        echo =====================================
+
         dir "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
 
       displayName: Verify Tomcat Folder
@@ -98,6 +129,10 @@ stages:
     # ==========================================
 
     - script: |
+        echo =====================================
+        echo COPYING WAR TO TOMCAT
+        echo =====================================
+
         for /r "$(Pipeline.Workspace)" %%i in (*.war) do copy "%%i" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
 
       displayName: Copy WAR To Tomcat
@@ -107,6 +142,10 @@ stages:
     # ==========================================
 
     - script: |
+        echo =====================================
+        echo RESTARTING TOMCAT
+        echo =====================================
+
         call "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\bin\shutdown.bat"
 
         timeout /t 10
