@@ -11,39 +11,39 @@ stages:
 # =====================================================
 
 - stage: Build
-  displayName: Build Stage
+  displayName: Build WAR Project
 
   jobs:
 
-  - job: MavenBuild
-    displayName: Maven Build Job
+  - job: BuildWebApp
+    displayName: Build WebApp WAR
 
     steps:
 
     # ==========================================
-    # CHECKOUT CODE
+    # CHECKOUT SOURCE CODE
     # ==========================================
 
     - checkout: self
 
     # ==========================================
-    # SHOW PROJECT FILES
+    # DISPLAY PROJECT FILES
     # ==========================================
 
     - script: |
-        echo ==================================
-        echo CURRENT DIRECTORY
-        echo ==================================
-
-        cd
-
-        echo ==================================
-        echo PROJECT FILES
-        echo ==================================
+        echo =====================================
+        echo ROOT PROJECT FILES
+        echo =====================================
 
         dir
 
-      displayName: Show Project Files
+        echo =====================================
+        echo WEBAPP FILES
+        echo =====================================
+
+        dir webapp
+
+      displayName: Show Project Structure
 
     # ==========================================
     # CHECK JAVA & MAVEN
@@ -52,34 +52,43 @@ stages:
     - script: |
         java --version
         mvn --version
+
       displayName: Check Java and Maven
 
     # ==========================================
-    # MAVEN BUILD
+    # BUILD WEBAPP MODULE
     # ==========================================
 
     - script: |
-        mvn clean package
-      displayName: Maven Package
+        mvn clean package -pl webapp -am
+
+      displayName: Build WAR File
 
     # ==========================================
-    # FIND GENERATED ARTIFACTS
+    # SHOW TARGET FOLDER
     # ==========================================
 
     - script: |
-        echo ==================================
-        echo SEARCHING FOR WAR FILES
-        echo ==================================
+        echo =====================================
+        echo WEBAPP TARGET CONTENT
+        echo =====================================
+
+        dir webapp\target
+
+      displayName: Show Target Folder
+
+    # ==========================================
+    # SEARCH GENERATED WAR
+    # ==========================================
+
+    - script: |
+        echo =====================================
+        echo SEARCHING FOR WAR FILE
+        echo =====================================
 
         dir /s *.war
 
-        echo ==================================
-        echo SEARCHING FOR JAR FILES
-        echo ==================================
-
-        dir /s *.jar
-
-      displayName: Find Generated Artifacts
+      displayName: Find WAR File
 
 
 # =====================================================
@@ -87,7 +96,7 @@ stages:
 # =====================================================
 
 - stage: Deploy
-  displayName: Deploy Stage
+  displayName: Deploy WAR File
 
   dependsOn: Build
 
@@ -104,32 +113,26 @@ stages:
 
     - script: |
         if not exist C:\JavaDeployment mkdir C:\JavaDeployment
+
       displayName: Create Deployment Folder
 
     # ==========================================
-    # COPY WAR FILES
+    # COPY WAR FILE
     # ==========================================
 
     - script: |
-        for /r %%i in (*.war) do copy "%%i" C:\JavaDeployment
-      displayName: Copy WAR Files
+        copy webapp\target\*.war C:\JavaDeployment
 
-    # ==========================================
-    # COPY JAR FILES
-    # ==========================================
-
-    - script: |
-        for /r %%i in (*.jar) do copy "%%i" C:\JavaDeployment
-      displayName: Copy JAR Files
+      displayName: Copy WAR File
 
     # ==========================================
     # VERIFY DEPLOYMENT
     # ==========================================
 
     - script: |
-        echo ==================================
+        echo =====================================
         echo DEPLOYED FILES
-        echo ==================================
+        echo =====================================
 
         dir C:\JavaDeployment
 
