@@ -69,7 +69,7 @@ stages:
       displayName: Show Project Structure
 
     # ==========================================
-    # MAVEN DEBUG BUILD
+    # BUILD WAR FILE
     # ==========================================
 
     - script: |
@@ -77,12 +77,12 @@ stages:
 
         set PATH=%JAVA_HOME%\bin;%PATH%
 
-        mvn clean package -pl webapp -am -e -X
+        mvn clean package -pl webapp -am
 
-      displayName: Maven Debug Build
+      displayName: Build WAR File
 
     # ==========================================
-    # SEARCH GENERATED WAR FILE
+    # FIND GENERATED WAR FILE
     # ==========================================
 
     - script: |
@@ -129,11 +129,7 @@ stages:
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo COPYING WAR TO TOMCAT
-        echo =====================================
-
-        for /r "$(Pipeline.Workspace)" %%i in (*.war) do copy "%%i" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
+        copy "C:\agent\_work\1\s\webapp\target\webapp.war" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
 
       displayName: Copy WAR To Tomcat
 
@@ -142,10 +138,6 @@ stages:
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo RESTARTING TOMCAT
-        echo =====================================
-
         call "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\bin\shutdown.bat"
 
         timeout /t 10
