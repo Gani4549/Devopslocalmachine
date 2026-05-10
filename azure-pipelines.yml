@@ -27,7 +27,7 @@ stages:
     - checkout: self
 
     # ==========================================
-    # DISPLAY PROJECT FILES
+    # SHOW PROJECT STRUCTURE
     # ==========================================
 
     - script: |
@@ -78,7 +78,7 @@ stages:
       displayName: Show Target Folder
 
     # ==========================================
-    # SEARCH GENERATED WAR
+    # SEARCH GENERATED WAR FILE
     # ==========================================
 
     - script: |
@@ -117,11 +117,24 @@ stages:
       displayName: Create Deployment Folder
 
     # ==========================================
+    # FIND WAR FILE
+    # ==========================================
+
+    - script: |
+        echo =====================================
+        echo SEARCHING FOR WAR FILE
+        echo =====================================
+
+        dir /s *.war
+
+      displayName: Find WAR File
+
+    # ==========================================
     # COPY WAR FILE
     # ==========================================
 
     - script: |
-        copy webapp\target\*.war C:\JavaDeployment
+        for /r "$(Pipeline.Workspace)" %%i in (*.war) do copy "%%i" C:\JavaDeployment
 
       displayName: Copy WAR File
 
