@@ -11,39 +11,39 @@ stages:
 # =====================================================
 
 - stage: Build
-  displayName: Build WAR Project
+  displayName: Build Stage
 
   jobs:
 
-  - job: BuildWebApp
-    displayName: Build WebApp WAR
+  - job: MavenBuild
+    displayName: Maven Build Job
 
     steps:
 
     # ==========================================
-    # CHECKOUT SOURCE CODE
+    # CHECKOUT CODE
     # ==========================================
 
     - checkout: self
 
     # ==========================================
-    # SHOW PROJECT STRUCTURE
+    # SHOW PROJECT FILES
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo ROOT PROJECT FILES
-        echo =====================================
+        echo ==================================
+        echo CURRENT DIRECTORY
+        echo ==================================
+
+        cd
+
+        echo ==================================
+        echo PROJECT FILES
+        echo ==================================
 
         dir
 
-        echo =====================================
-        echo WEBAPP FILES
-        echo =====================================
-
-        dir webapp
-
-      displayName: Show Project Structure
+      displayName: Show Project Files
 
     # ==========================================
     # CHECK JAVA & MAVEN
@@ -52,43 +52,34 @@ stages:
     - script: |
         java --version
         mvn --version
-
       displayName: Check Java and Maven
 
     # ==========================================
-    # BUILD WEBAPP MODULE
+    # MAVEN BUILD
     # ==========================================
 
     - script: |
-        mvn clean package -pl webapp -am
-
-      displayName: Build WAR File
-
-    # ==========================================
-    # SHOW TARGET FOLDER
-    # ==========================================
-
-    - script: |
-        echo =====================================
-        echo WEBAPP TARGET CONTENT
-        echo =====================================
-
-        dir webapp\target
-
-      displayName: Show Target Folder
+        mvn clean package
+      displayName: Maven Package
 
     # ==========================================
-    # SEARCH GENERATED WAR FILE
+    # FIND GENERATED ARTIFACTS
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo SEARCHING FOR WAR FILE
-        echo =====================================
+        echo ==================================
+        echo SEARCHING FOR WAR FILES
+        echo ==================================
 
         dir /s *.war
 
-      displayName: Find WAR File
+        echo ==================================
+        echo SEARCHING FOR JAR FILES
+        echo ==================================
+
+        dir /s *.jar
+
+      displayName: Find Generated Artifacts
 
 
 # =====================================================
@@ -96,7 +87,7 @@ stages:
 # =====================================================
 
 - stage: Deploy
-  displayName: Deploy WAR File
+  displayName: Deploy Stage
 
   dependsOn: Build
 
@@ -113,39 +104,32 @@ stages:
 
     - script: |
         if not exist C:\JavaDeployment mkdir C:\JavaDeployment
-
       displayName: Create Deployment Folder
 
     # ==========================================
-    # FIND WAR FILE
+    # COPY WAR FILES
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo SEARCHING FOR WAR FILE
-        echo =====================================
-
-        dir /s *.war
-
-      displayName: Find WAR File
+        for /r %%i in (*.war) do copy "%%i" C:\JavaDeployment
+      displayName: Copy WAR Files
 
     # ==========================================
-    # COPY WAR FILE
+    # COPY JAR FILES
     # ==========================================
 
     - script: |
-        for /r "$(Pipeline.Workspace)" %%i in (*.war) do copy "%%i" C:\JavaDeployment
-
-      displayName: Copy WAR File
+        for /r %%i in (*.jar) do copy "%%i" C:\JavaDeployment
+      displayName: Copy JAR Files
 
     # ==========================================
     # VERIFY DEPLOYMENT
     # ==========================================
 
     - script: |
-        echo =====================================
+        echo ==================================
         echo DEPLOYED FILES
-        echo =====================================
+        echo ==================================
 
         dir C:\JavaDeployment
 
