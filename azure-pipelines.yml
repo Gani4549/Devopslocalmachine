@@ -129,7 +129,13 @@ stages:
     # ==========================================
 
     - script: |
-        copy "C:\agent\_work\1\s\webapp\target\webapp.war" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
+        echo =====================================
+        echo COPYING WAR FILE
+        echo =====================================
+
+        dir /s *.war
+
+        for /r %%i in (*.war) do copy "%%i" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
 
       displayName: Copy WAR To Tomcat
 
@@ -138,6 +144,10 @@ stages:
     # ==========================================
 
     - script: |
+        echo =====================================
+        echo RESTARTING TOMCAT
+        echo =====================================
+
         call "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\bin\shutdown.bat"
 
         timeout /t 10
