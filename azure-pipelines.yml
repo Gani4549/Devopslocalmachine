@@ -21,10 +21,26 @@ stages:
     steps:
 
     # ==========================================
-    # CHECKOUT SOURCE CODE
+    # CHECKOUT
     # ==========================================
 
     - checkout: self
+
+    # ==========================================
+    # DISPLAY CURRENT DIRECTORY
+    # ==========================================
+
+    - script: |
+        echo Current Directory:
+        cd
+
+        echo ==========================
+        echo Files in Source Directory
+        echo ==========================
+
+        dir
+
+      displayName: Show Source Files
 
     # ==========================================
     # CHECK JAVA & MAVEN
@@ -44,12 +60,17 @@ stages:
       displayName: Maven Build
 
     # ==========================================
-    # DISPLAY TARGET FILES
+    # FIND GENERATED FILES
     # ==========================================
 
     - script: |
-        dir "$(System.DefaultWorkingDirectory)\target"
-      displayName: Verify Target Folder
+        echo ==========================
+        echo Searching for JAR Files
+        echo ==========================
+
+        dir /s *.jar
+
+      displayName: Find JAR Files
 
 
 # =====================================================
@@ -69,7 +90,7 @@ stages:
     steps:
 
     # ==========================================
-    # CREATE DEPLOYMENT FOLDER
+    # CREATE DEPLOYMENT DIRECTORY
     # ==========================================
 
     - script: |
@@ -77,17 +98,21 @@ stages:
       displayName: Create Deployment Folder
 
     # ==========================================
-    # COPY JAR FILE
+    # COPY GENERATED JAR
     # ==========================================
 
     - script: |
-        copy "$(System.DefaultWorkingDirectory)\target\*.jar" C:\JavaDeployment
-      displayName: Deploy JAR
+        for /r %%i in (*.jar) do copy "%%i" C:\JavaDeployment
+      displayName: Copy JAR File
 
     # ==========================================
     # VERIFY DEPLOYMENT
     # ==========================================
 
     - script: |
+        echo ==========================
+        echo Deployment Files
+        echo ==========================
+
         dir C:\JavaDeployment
       displayName: Verify Deployment
