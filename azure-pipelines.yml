@@ -21,7 +21,7 @@ stages:
     steps:
 
     # ==========================================
-    # CHECKOUT SOURCE CODE
+    # CHECKOUT CODE
     # ==========================================
 
     - checkout: self
@@ -35,38 +35,10 @@ stages:
 
         set PATH=%JAVA_HOME%\bin;%PATH%
 
-        echo =====================================
-        echo JAVA VERSION
-        echo =====================================
-
         java -version
-
-        echo =====================================
-        echo MAVEN VERSION
-        echo =====================================
-
         mvn -version
 
       displayName: Configure Java 11
-
-    # ==========================================
-    # SHOW PROJECT STRUCTURE
-    # ==========================================
-
-    - script: |
-        echo =====================================
-        echo ROOT PROJECT FILES
-        echo =====================================
-
-        dir
-
-        echo =====================================
-        echo WEBAPP PROJECT FILES
-        echo =====================================
-
-        dir webapp
-
-      displayName: Show Project Structure
 
     # ==========================================
     # BUILD WAR FILE
@@ -82,17 +54,24 @@ stages:
       displayName: Build WAR File
 
     # ==========================================
-    # FIND GENERATED WAR FILE
+    # VERIFY WAR FILE
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo SEARCHING FOR WAR FILE
-        echo =====================================
+        dir webapp\target
 
-        dir /s *.war
+      displayName: Verify WAR File
 
-      displayName: Find WAR File
+    # ==========================================
+    # PUBLISH WAR ARTIFACT
+    # ==========================================
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish WAR Artifact
+      inputs:
+        PathtoPublish: 'webapp\target'
+        ArtifactName: 'warfile'
+        publishLocation: 'Container'
 
 
 # =====================================================
@@ -112,30 +91,36 @@ stages:
     steps:
 
     # ==========================================
-    # VERIFY TOMCAT WEBAPPS FOLDER
+    # DOWNLOAD BUILD ARTIFACT
+    # ==========================================
+
+    - task: DownloadBuildArtifacts@1
+      displayName: Download WAR Artifact
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'warfile'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    # ==========================================
+    # VERIFY DOWNLOADED WAR
     # ==========================================
 
     - script: |
         echo =====================================
-        echo VERIFY TOMCAT WEBAPPS
+        echo DOWNLOADED ARTIFACTS
         echo =====================================
 
-        dir "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
+        dir /s "$(System.ArtifactsDirectory)"
 
-      displayName: Verify Tomcat Folder
+      displayName: Verify Downloaded WAR
 
     # ==========================================
     # COPY WAR TO TOMCAT
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo COPYING WAR FILE
-        echo =====================================
-
-        dir /s *.war
-
-        for /r %%i in (*.war) do copy "%%i" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
+        copy "$(System.ArtifactsDirectory)\warfile\webapp.war" "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
 
       displayName: Copy WAR To Tomcat
 
@@ -144,10 +129,6 @@ stages:
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo RESTARTING TOMCAT
-        echo =====================================
-
         call "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\bin\shutdown.bat"
 
         timeout /t 10
@@ -157,14 +138,10 @@ stages:
       displayName: Restart Tomcat
 
     # ==========================================
-    # VERIFY DEPLOYMENT
+    # VERIFY TOMCAT DEPLOYMENT
     # ==========================================
 
     - script: |
-        echo =====================================
-        echo DEPLOYED FILES IN TOMCAT
-        echo =====================================
-
         dir "C:\Users\ABKO472\Downloads\apache-tomcat-11.0.21-windows-x64\apache-tomcat-11.0.21\webapps"
 
       displayName: Verify WAR Deployment
