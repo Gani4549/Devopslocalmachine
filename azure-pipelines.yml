@@ -6,25 +6,55 @@ pool:
 
 stages:
 
+# =====================================================
+# BUILD STAGE
+# =====================================================
+
 - stage: Build
   displayName: Build Stage
 
   jobs:
 
   - job: MavenBuild
+    displayName: Maven Build Job
 
     steps:
 
+    # ==========================================
+    # CHECKOUT SOURCE CODE
+    # ==========================================
+
     - checkout: self
+
+    # ==========================================
+    # CHECK JAVA & MAVEN
+    # ==========================================
 
     - script: |
         java --version
         mvn --version
       displayName: Check Java and Maven
 
+    # ==========================================
+    # MAVEN BUILD
+    # ==========================================
+
     - script: |
         mvn clean install
       displayName: Maven Build
+
+    # ==========================================
+    # DISPLAY TARGET FILES
+    # ==========================================
+
+    - script: |
+        dir "$(System.DefaultWorkingDirectory)\target"
+      displayName: Verify Target Folder
+
+
+# =====================================================
+# DEPLOY STAGE
+# =====================================================
 
 - stage: Deploy
   displayName: Deploy Stage
@@ -34,11 +64,30 @@ stages:
   jobs:
 
   - job: DeployJob
+    displayName: Deploy To Local Machine
 
     steps:
 
-    - script: |
-        mkdir C:\JavaDeployment
+    # ==========================================
+    # CREATE DEPLOYMENT FOLDER
+    # ==========================================
 
-        copy target\*.jar C:\JavaDeployment
+    - script: |
+        if not exist C:\JavaDeployment mkdir C:\JavaDeployment
+      displayName: Create Deployment Folder
+
+    # ==========================================
+    # COPY JAR FILE
+    # ==========================================
+
+    - script: |
+        copy "$(System.DefaultWorkingDirectory)\target\*.jar" C:\JavaDeployment
       displayName: Deploy JAR
+
+    # ==========================================
+    # VERIFY DEPLOYMENT
+    # ==========================================
+
+    - script: |
+        dir C:\JavaDeployment
+      displayName: Verify Deployment
