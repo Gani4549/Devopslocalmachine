@@ -21,26 +21,29 @@ stages:
     steps:
 
     # ==========================================
-    # CHECKOUT
+    # CHECKOUT CODE
     # ==========================================
 
     - checkout: self
 
     # ==========================================
-    # DISPLAY CURRENT DIRECTORY
+    # SHOW PROJECT FILES
     # ==========================================
 
     - script: |
-        echo Current Directory:
+        echo ==================================
+        echo CURRENT DIRECTORY
+        echo ==================================
+
         cd
 
-        echo ==========================
-        echo Files in Source Directory
-        echo ==========================
+        echo ==================================
+        echo PROJECT FILES
+        echo ==================================
 
         dir
 
-      displayName: Show Source Files
+      displayName: Show Project Files
 
     # ==========================================
     # CHECK JAVA & MAVEN
@@ -56,21 +59,27 @@ stages:
     # ==========================================
 
     - script: |
-        mvn clean install
-      displayName: Maven Build
+        mvn clean package
+      displayName: Maven Package
 
     # ==========================================
-    # FIND GENERATED FILES
+    # FIND GENERATED ARTIFACTS
     # ==========================================
 
     - script: |
-        echo ==========================
-        echo Searching for JAR Files
-        echo ==========================
+        echo ==================================
+        echo SEARCHING FOR WAR FILES
+        echo ==================================
+
+        dir /s *.war
+
+        echo ==================================
+        echo SEARCHING FOR JAR FILES
+        echo ==================================
 
         dir /s *.jar
 
-      displayName: Find JAR Files
+      displayName: Find Generated Artifacts
 
 
 # =====================================================
@@ -84,7 +93,7 @@ stages:
 
   jobs:
 
-  - job: DeployJob
+  - job: DeployToLocal
     displayName: Deploy To Local Machine
 
     steps:
@@ -98,21 +107,30 @@ stages:
       displayName: Create Deployment Folder
 
     # ==========================================
-    # COPY GENERATED JAR
+    # COPY WAR FILES
+    # ==========================================
+
+    - script: |
+        for /r %%i in (*.war) do copy "%%i" C:\JavaDeployment
+      displayName: Copy WAR Files
+
+    # ==========================================
+    # COPY JAR FILES
     # ==========================================
 
     - script: |
         for /r %%i in (*.jar) do copy "%%i" C:\JavaDeployment
-      displayName: Copy JAR File
+      displayName: Copy JAR Files
 
     # ==========================================
     # VERIFY DEPLOYMENT
     # ==========================================
 
     - script: |
-        echo ==========================
-        echo Deployment Files
-        echo ==========================
+        echo ==================================
+        echo DEPLOYED FILES
+        echo ==================================
 
         dir C:\JavaDeployment
+
       displayName: Verify Deployment
