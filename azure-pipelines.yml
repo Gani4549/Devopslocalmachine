@@ -6,117 +6,39 @@ pool:
 
 stages:
 
-# =====================================================
-# BUILD STAGE
-# =====================================================
-
 - stage: Build
-  displayName: Build Maven Project
+  displayName: Build Stage
 
   jobs:
 
   - job: MavenBuild
-    displayName: Maven Build Job
 
     steps:
 
-    # ==========================================
-    # CHECKOUT SOURCE CODE
-    # ==========================================
-
     - checkout: self
 
-    # ==========================================
-    # JAVA VERSION CHECK
-    # ==========================================
+    - script: |
+        java --version
+        mvn --version
+      displayName: Check Java and Maven
 
-    - powershell: |
-        java -version
-      displayName: Check Java Version
-
-    # ==========================================
-    # MAVEN VERSION CHECK
-    # ==========================================
-
-    - powershell: |
-        mvn -version
-      displayName: Check Maven Version
-
-    # ==========================================
-    # MAVEN BUILD
-    # ==========================================
-
-    - task: Maven@4
-      displayName: Maven Clean Install
-      inputs:
-        mavenPomFile: 'pom.xml'
-        goals: 'clean install'
-        publishJUnitResults: true
-        testResultsFiles: '**/surefire-reports/TEST-*.xml'
-        javaHomeOption: 'JDKVersion'
-        jdkVersionOption: '1.8'
-        mavenVersionOption: 'Default'
-
-    # ==========================================
-    # VERIFY TARGET FILES
-    # ==========================================
-
-    - powershell: |
-        Write-Host "Displaying target folder"
-        Get-ChildItem "$(System.DefaultWorkingDirectory)\target"
-      displayName: Verify Build Artifacts
-
-
-# =====================================================
-# DEPLOY STAGE
-# =====================================================
+    - script: |
+        mvn clean install
+      displayName: Maven Build
 
 - stage: Deploy
-  displayName: Deploy Maven Artifact
+  displayName: Deploy Stage
 
   dependsOn: Build
 
   jobs:
 
   - job: DeployJob
-    displayName: Deploy To Local Machine
 
     steps:
 
-    # ==========================================
-    # CREATE DEPLOYMENT FOLDER
-    # ==========================================
+    - script: |
+        mkdir C:\JavaDeployment
 
-    - powershell: |
-        Write-Host "Creating Deployment Folder"
-
-        New-Item -ItemType Directory `
-        -Force `
-        -Path "C:\JavaDeployment"
-
-      displayName: Create Deployment Folder
-
-    # ==========================================
-    # COPY JAR FILE
-    # ==========================================
-
-    - powershell: |
-        Write-Host "Copying JAR File"
-
-        Copy-Item `
-        "$(System.DefaultWorkingDirectory)\target\*.jar" `
-        "C:\JavaDeployment" `
-        -Force
-
-      displayName: Copy JAR File
-
-    # ==========================================
-    # DISPLAY DEPLOYED FILES
-    # ==========================================
-
-    - powershell: |
-        Write-Host "Deployment Successful"
-
-        Get-ChildItem "C:\JavaDeployment"
-
-      displayName: Verify Deployment
+        copy target\*.jar C:\JavaDeployment
+      displayName: Deploy JAR
